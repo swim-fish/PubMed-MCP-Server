@@ -1,0 +1,65 @@
+version: "2"
+name: "local-pubmed"
+displayName: "Local PubMed Catalog"
+registry:
+  pubmed-mcp-server:
+    type: "server"
+    image: "local/pubmed-mcp-server:latest"
+    title: "PubMed MCP Server"
+    description: "Search, retrieve, and analyze biomedical literature from PubMed. Features advanced filtering, full-text retrieval (PMC), and citation network analysis."
+    publisher: "Augmented Nature"
+    
+    # Environment Variables
+    env:
+      - name: "NCBI_API_KEY"
+        description: "API Key for NCBI (Increases rate limit to 10 req/s)"
+        required: false
+      - name: "NCBI_EMAIL"
+        description: "Email address for NCBI identification (Good practice)"
+        required: false
+      - name: "MCP_TRANSPORT_TYPE"
+        description: "Transport mode (stdio or http)"
+        default: "stdio"
+        required: false
+
+    # Complete Tool Definitions
+    tools:
+      # Search & Discovery
+      - name: "search_articles"
+        description: "Basic search by keywords, authors, journals, or dates."
+      - name: "advanced_search"
+        description: "Complex queries with boolean operators and field-specific filters."
+      - name: "search_by_author"
+        description: "Find articles by specific author(s) with affiliation filtering."
+      - name: "search_by_journal"
+        description: "Search within specific journals with date ranges."
+      - name: "search_by_mesh_terms"
+        description: "Search using Medical Subject Headings (MeSH)."
+      - name: "get_trending_articles"
+        description: "Get recently published articles in a specific field."
+
+      # Article Retrieval
+      - name: "get_article_details"
+        description: "Get comprehensive metadata and abstract for a specific PMID."
+      - name: "get_abstract"
+        description: "Retrieve just the article abstract by PMID."
+      - name: "get_full_text"
+        description: "Retrieve full text from PubMed Central (PMC) when available."
+      - name: "batch_article_lookup"
+        description: "Retrieve metadata for multiple PMIDs efficiently."
+
+      # Citation & Network
+      - name: "get_cited_by"
+        description: "Find articles that cite a specific PMID."
+      - name: "get_references"
+        description: "Get the reference list for an article."
+      - name: "get_similar_articles"
+        description: "Find related articles based on content similarity."
+      - name: "export_citation"
+        description: "Generate citations in APA, MLA, Chicago, BibTeX, or RIS formats."
+
+      # Utilities
+      - name: "validate_pmid"
+        description: "Check if a PubMed ID is valid and exists."
+      - name: "convert_identifiers"
+        description: "Convert between PMID, DOI, and PMC IDs."

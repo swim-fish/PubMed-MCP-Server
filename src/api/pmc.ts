@@ -16,7 +16,7 @@ export class PMCClient {
     this.rateLimiter = new RateLimiter(requestsPerSecond);
 
     this.client = axios.create({
-      baseURL: 'https://www.ncbi.nlm.nih.gov/pmc',
+      baseURL: 'https://pmc.ncbi.nlm.nih.gov',
       timeout: 30000,
       headers: {
         'User-Agent': 'PubMed-MCP-Server/1.0'
@@ -31,7 +31,7 @@ export class PMCClient {
     return this.rateLimiter.execute(async () => {
       return retryWithBackoff(async () => {
         const normalizedId = normalizePMCID(pmcid);
-        const response = await this.client.get(`/oai/oai.cgi`, {
+        const response = await this.client.get(`/api/oai/v1/mh/`, {
           params: {
             verb: 'GetRecord',
             identifier: `oai:pubmedcentral.nih.gov:${normalizedId.replace('PMC', '')}`,
@@ -48,8 +48,8 @@ export class PMCClient {
   /**
    * Parse full text article from PMC XML
    */
-  private parseFullTextArticle(data: any, pmcid: string): FullTextArticle {
-    const record = data['OAI-PMH']?.GetRecord?.record;
+  public parseFullTextArticle(data: any, pmcid: string): FullTextArticle {
+    const record = data.GetRecord?.record || data['OAI-PMH']?.GetRecord?.record;
     if (!record) {
       throw new Error(`Full text not found for ${pmcid}`);
     }
