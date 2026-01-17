@@ -22,6 +22,12 @@ Create a new namespace for local PubMed services.
 docker mcp catalog create local-pubmed
 ```
 
+### Step 2.1.1: Create Docker Volume
+
+```bash
+docker volume create pubmed_data
+```
+
 ### Step 2.2: Add Server to Catalog
 
 Import the server configuration from your source YAML file (`pubmed-catalog.yaml`) into the local catalog.
@@ -63,6 +69,7 @@ To enable the server in your MCP client (e.g., Claude Desktop, IDEs), add the fo
         "--rm",
         "--env", "NCBI_API_KEY", 
         "--env", "NCBI_EMAIL",
+        "--volume", "pubmed_data:/app/data",
         "local/pubmed-mcp-server:latest"
       ],
       "env": {
@@ -82,7 +89,32 @@ To enable the server in your MCP client (e.g., Claude Desktop, IDEs), add the fo
 
 ---
 
-## 4. Manual Configuration Reference
+## 4. Caching & Persistence
+
+The PubMed MCP Server implements a robust, SQLite-backed caching system to optimize response times and minimize API usage against NCBI rate limits.
+
+### Caching Architecture
+
+* **Storage Engine**: SQLite (`cache.db`).
+* **Persistence**: Data is stored in the `/app/data` directory, mapped to the `pubmed_data` Docker volume. This ensures the cache survives container restarts.
+* **Policy**:
+  * **Scope**: Caches all `GET` requests.
+  * **Retention**: Default Time-To-Live (TTL) is **7 days**.
+  * **Override**: The server explicitly ignores `no-cache` headers from upstream PubMed APIs to enforce local caching.
+  * **Resilience**: Includes logic to detect and purge "zombie" loading states (requests that failed to complete).
+
+### Cache Management
+
+To clear the cache, you can recreate the Docker volume:
+
+```bash
+docker volume rm pubmed_data
+docker volume create pubmed_data
+```
+
+---
+
+## 5. Manual Configuration Reference
 
 The following sections verify the internal file structures created by the catalog registration process. These files define the server capabilities and registry references.
 
@@ -102,6 +134,8 @@ registry:
     title: PubMed MCP Server
     description: Search, retrieve, and analyze biomedical literature from PubMed. Features advanced filtering, full-text retrieval (PMC), and citation network analysis.
     publisher: Augmented Nature
+    volumes:
+      - "pubmed_data:/app/data"
     env:
       - name: NCBI_API_KEY
         description: API Key for NCBI (Increases rate limit to 10 req/s)

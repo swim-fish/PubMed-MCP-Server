@@ -3,7 +3,8 @@
  * Documentation: https://www.ncbi.nlm.nih.gov/books/NBK25501/
  */
 
-import axios, { AxiosInstance } from 'axios';
+import { createCachedClient } from './http-factory.js';
+import type { AxiosCacheInstance } from 'axios-cache-interceptor';
 import {
   SearchParams,
   FetchParams,
@@ -27,7 +28,7 @@ import {
 } from './utils.js';
 
 export class EUtilsClient {
-  private client: AxiosInstance;
+  private client: AxiosCacheInstance;
   private rateLimiter: RateLimiter;
   private config: EUtilsConfig;
 
@@ -44,7 +45,7 @@ export class EUtilsClient {
 
     this.rateLimiter = new RateLimiter(requestsPerSecond);
 
-    this.client = axios.create({
+    this.client = createCachedClient({
       baseURL: this.config.baseUrl,
       timeout: 30000,
       headers: {
@@ -92,7 +93,12 @@ export class EUtilsClient {
           field: params.field
         };
 
-        const response = await this.client.get('/esearch.fcgi' + buildQueryString(queryParams));
+        const response = await this.client.get(
+          "/esearch.fcgi" + buildQueryString(queryParams),
+          {
+            cache: { ttl: 1000 * 60 * 10 }, // Override: 10 minutes for search results
+          },
+        );
         const result = response.data.esearchresult;
 
         return {

@@ -8,6 +8,9 @@ registry:
     title: "PubMed MCP Server"
     description: "Search, retrieve, and analyze biomedical literature from PubMed. Features advanced filtering, full-text retrieval (PMC), and citation network analysis."
     publisher: "Augmented Nature"
+
+    volumes:
+      - "pubmed_data:/app/data"
     
     # Environment Variables
     env:

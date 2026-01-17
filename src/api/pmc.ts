@@ -3,19 +3,20 @@
  * Documentation: https://www.ncbi.nlm.nih.gov/pmc/tools/developers/
  */
 
-import axios, { AxiosInstance } from 'axios';
+import type { AxiosCacheInstance } from 'axios-cache-interceptor';
 import { FullTextArticle, ArticleSection, Figure, Table, Reference } from '../types.js';
 import { parseXML, extractText, RateLimiter, retryWithBackoff, normalizePMCID } from './utils.js';
+import { createCachedClient } from './http-factory.js';
 
 export class PMCClient {
-  private client: AxiosInstance;
+  private client: AxiosCacheInstance;
   private rateLimiter: RateLimiter;
 
   constructor(apiKey?: string) {
     const requestsPerSecond = apiKey ? 10 : 3;
     this.rateLimiter = new RateLimiter(requestsPerSecond);
 
-    this.client = axios.create({
+    this.client = createCachedClient({
       baseURL: 'https://pmc.ncbi.nlm.nih.gov',
       timeout: 30000,
       headers: {
